@@ -1,0 +1,8 @@
+repo:
+  url: git@github.com:example/stacks.git
+  branch: main
+  local_path: ~/.dockflux/repo
+
+stacks_dir: stacks/
+state_file: ./dockflux.lock
+inventory: ./testdata/inventory.yml

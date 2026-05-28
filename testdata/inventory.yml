@@ -1,0 +1,12 @@
+hosts:
+  local:
+    type: local
+
+  web01:
+    host: 192.168.1.10
+    user: deploy
+    key: ~/.ssh/id_rsa
+    groups:
+      - production
+      - web
+    compose_dir: /opt/stacks
