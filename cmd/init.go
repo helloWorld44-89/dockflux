@@ -26,7 +26,7 @@ var initCmd = &cobra.Command{
 func runInit(cmd *cobra.Command, args []string) error {
 	printBanner()
 
-	// ── Step 1 & 2: Repo + auth ──────────────────────────────────────────────
+	// ── Step 1: Repo mode ────────────────────────────────────────────────────
 	var (
 		repoURL       string
 		authMethod    = "ssh"
@@ -35,6 +35,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		httpsToken    string
 		branch        = "main"
 		localPath     = expandHome("~/.dockflux/repo")
+		createNew     bool
 	)
 
 	if err := huh.NewForm(
@@ -42,71 +43,26 @@ func runInit(cmd *cobra.Command, args []string) error {
 			huh.NewNote().
 				Title("Step 1 of 4 — Repository").
 				Description("Where are your Docker Compose stacks stored?"),
-			huh.NewInput().
-				Title("Git repo URL").
-				Placeholder("git@github.com:you/stacks.git").
-				Value(&repoURL).
-				Validate(func(s string) error {
-					if s == "" {
-						return fmt.Errorf("repo URL is required")
-					}
-					return nil
-				}),
-			huh.NewSelect[string]().
-				Title("Authentication method").
+			huh.NewSelect[bool]().
+				Title("Repo setup").
 				Options(
-					huh.NewOption("SSH key", "ssh"),
-					huh.NewOption("HTTPS personal access token", "https"),
+					huh.NewOption("I have an existing git repo", false),
+					huh.NewOption("Create a new stacks repo for me", true),
 				).
-				Value(&authMethod),
-			huh.NewInput().
-				Title("Branch").
-				Value(&branch),
-			huh.NewInput().
-				Title("Local cache path").
-				Description("Where the repo will be cloned on this machine").
-				Value(&localPath),
+				Value(&createNew),
 		),
-
-		// SSH credentials group (hidden when HTTPS is selected)
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Step 2 of 4 — SSH credentials"),
-			huh.NewInput().
-				Title("SSH key path").
-				Value(&sshKeyPath).
-				Validate(func(s string) error {
-					expanded := expandHome(s)
-					if _, err := os.Stat(expanded); err != nil {
-						return fmt.Errorf("key file not found: %s", expanded)
-					}
-					return nil
-				}),
-			huh.NewInput().
-				Title("SSH key passphrase").
-				Description("Leave empty if your key has no passphrase").
-				EchoMode(huh.EchoModePassword).
-				Value(&sshPassphrase),
-		).WithHideFunc(func() bool { return authMethod != "ssh" }),
-
-		// HTTPS credentials group (hidden when SSH is selected)
-		huh.NewGroup(
-			huh.NewNote().
-				Title("Step 2 of 4 — HTTPS credentials"),
-			huh.NewInput().
-				Title("Personal access token").
-				Description("GitHub/GitLab PAT with repo read access").
-				EchoMode(huh.EchoModePassword).
-				Value(&httpsToken).
-				Validate(func(s string) error {
-					if s == "" {
-						return fmt.Errorf("token is required for HTTPS auth")
-					}
-					return nil
-				}),
-		).WithHideFunc(func() bool { return authMethod != "https" }),
 	).WithTheme(huh.ThemeDracula()).Run(); err != nil {
 		return err
+	}
+
+	if createNew {
+		if err := runInitNewRepo(cmd, &repoURL, &authMethod, &sshKeyPath, &sshPassphrase, &httpsToken, &branch, &localPath); err != nil {
+			return err
+		}
+	} else {
+		if err := runInitExistingRepo(&repoURL, &authMethod, &sshKeyPath, &sshPassphrase, &httpsToken, &branch, &localPath); err != nil {
+			return err
+		}
 	}
 
 	// ── Step 3: Secrets master password ──────────────────────────────────────
@@ -234,7 +190,10 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	// ── Initial sync ──────────────────────────────────────────────────────────
 	var doSync bool
-	if err := huh.NewForm(
+	if createNew {
+		// Repo was just created locally — no need to clone
+		doSync = true
+	} else if err := huh.NewForm(
 		huh.NewGroup(
 			huh.NewConfirm().
 				Title("Clone the stacks repo now?").
@@ -245,7 +204,7 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	if doSync {
+	if doSync && !createNew {
 		syncStop := ui.Spinner(fmt.Sprintf("Cloning %s", repoURL))
 
 		// Fix #4: build auth based on the method the user actually chose
@@ -314,6 +273,218 @@ func runInit(cmd *cobra.Command, args []string) error {
 
 	// ── Summary ───────────────────────────────────────────────────────────────
 	printSummary(remoteHosts, secretsPath, doSync)
+	return nil
+}
+
+func runInitExistingRepo(repoURL, authMethod, sshKeyPath, sshPassphrase, httpsToken, branch, localPath *string) error {
+	return huh.NewForm(
+		huh.NewGroup(
+			huh.NewNote().
+				Title("Step 1 of 4 — Repository").
+				Description("Where are your Docker Compose stacks stored?"),
+			huh.NewInput().
+				Title("Git repo URL").
+				Placeholder("git@github.com:you/stacks.git").
+				Value(repoURL).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("repo URL is required")
+					}
+					return nil
+				}),
+			huh.NewSelect[string]().
+				Title("Authentication method").
+				Options(
+					huh.NewOption("SSH key", "ssh"),
+					huh.NewOption("HTTPS personal access token", "https"),
+				).
+				Value(authMethod),
+			huh.NewInput().
+				Title("Branch").
+				Value(branch),
+			huh.NewInput().
+				Title("Local cache path").
+				Description("Where the repo will be cloned on this machine").
+				Value(localPath),
+		),
+		huh.NewGroup(
+			huh.NewNote().Title("Step 2 of 4 — SSH credentials"),
+			huh.NewInput().
+				Title("SSH key path").
+				Value(sshKeyPath).
+				Validate(func(s string) error {
+					expanded := expandHome(s)
+					if _, err := os.Stat(expanded); err != nil {
+						return fmt.Errorf("key file not found: %s", expanded)
+					}
+					return nil
+				}),
+			huh.NewInput().
+				Title("SSH key passphrase").
+				Description("Leave empty if your key has no passphrase").
+				EchoMode(huh.EchoModePassword).
+				Value(sshPassphrase),
+		).WithHideFunc(func() bool { return *authMethod != "ssh" }),
+		huh.NewGroup(
+			huh.NewNote().Title("Step 2 of 4 — HTTPS credentials"),
+			huh.NewInput().
+				Title("Personal access token").
+				Description("GitHub/GitLab PAT with repo read access").
+				EchoMode(huh.EchoModePassword).
+				Value(httpsToken).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("token is required for HTTPS auth")
+					}
+					return nil
+				}),
+		).WithHideFunc(func() bool { return *authMethod != "https" }),
+	).WithTheme(huh.ThemeDracula()).Run()
+}
+
+func runInitNewRepo(cmd *cobra.Command, repoURL, authMethod, sshKeyPath, sshPassphrase, httpsToken, branch, localPath *string) error {
+	// Ask where to create the local repo
+	if err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewNote().
+				Title("Step 1 of 4 — Create new stacks repo").
+				Description("dockflux will scaffold a git repo with a stacks/ directory.\nYou'll then push it to GitHub/GitLab to use as your source of truth."),
+			huh.NewInput().
+				Title("Local path for your new repo").
+				Placeholder(expandHome("~/stacks")).
+				Value(localPath).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("path is required")
+					}
+					return nil
+				}),
+			huh.NewInput().
+				Title("Default branch name").
+				Value(branch),
+		),
+	).WithTheme(huh.ThemeDracula()).Run(); err != nil {
+		return err
+	}
+
+	expanded := expandHome(*localPath)
+
+	// Scaffold the repo
+	stop := ui.Spinner(fmt.Sprintf("Creating repo at %s", expanded))
+	if err := gitops.InitRepo(expanded, *branch); err != nil {
+		stop(false, "Failed to create repo")
+		return err
+	}
+	stop(true, fmt.Sprintf("Repo created at %s", expanded))
+
+	// Instruct the user to create a remote
+	pterm.Println()
+	pterm.Info.Println("Next: create an empty repo on GitHub or GitLab (no README, no .gitignore),")
+	pterm.Info.Println("then paste its URL below.")
+	pterm.Println()
+
+	// Ask for remote URL + auth
+	var remoteURL string
+	if err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewNote().Title("Step 2 of 4 — Remote & authentication"),
+			huh.NewInput().
+				Title("Remote repo URL").
+				Placeholder("git@github.com:you/stacks.git").
+				Value(&remoteURL).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("remote URL is required")
+					}
+					return nil
+				}),
+			huh.NewSelect[string]().
+				Title("Authentication method").
+				Options(
+					huh.NewOption("SSH key", "ssh"),
+					huh.NewOption("HTTPS personal access token", "https"),
+				).
+				Value(authMethod),
+		),
+		huh.NewGroup(
+			huh.NewNote().Title("Step 2 of 4 — SSH credentials"),
+			huh.NewInput().
+				Title("SSH key path").
+				Value(sshKeyPath).
+				Validate(func(s string) error {
+					expanded := expandHome(s)
+					if _, err := os.Stat(expanded); err != nil {
+						return fmt.Errorf("key file not found: %s", expanded)
+					}
+					return nil
+				}),
+			huh.NewInput().
+				Title("SSH key passphrase").
+				Description("Leave empty if your key has no passphrase").
+				EchoMode(huh.EchoModePassword).
+				Value(sshPassphrase),
+		).WithHideFunc(func() bool { return *authMethod != "ssh" }),
+		huh.NewGroup(
+			huh.NewNote().Title("Step 2 of 4 — HTTPS credentials"),
+			huh.NewInput().
+				Title("Personal access token").
+				Description("GitHub/GitLab PAT with repo write access").
+				EchoMode(huh.EchoModePassword).
+				Value(httpsToken).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("token is required for HTTPS auth")
+					}
+					return nil
+				}),
+		).WithHideFunc(func() bool { return *authMethod != "https" }),
+	).WithTheme(huh.ThemeDracula()).Run(); err != nil {
+		return err
+	}
+
+	*repoURL = remoteURL
+
+	// Add remote
+	if err := gitops.AddRemote(expanded, "origin", remoteURL); err != nil {
+		ui.Warn("Could not add remote: %v", err)
+	}
+
+	// Offer to push the initial commit
+	var doPush bool
+	if err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Push the initial commit now?").
+				Description(fmt.Sprintf("Pushes the scaffolded repo to %s", remoteURL)).
+				Value(&doPush),
+		),
+	).WithTheme(huh.ThemeDracula()).Run(); err != nil {
+		return err
+	}
+
+	if doPush {
+		var pushAuth gitopstransport.AuthMethod
+		var authErr error
+		if *authMethod == "ssh" {
+			pushAuth, authErr = gitops.SSHAuth(*sshKeyPath)
+		} else {
+			pushAuth = gitops.HTTPSAuth(*httpsToken)
+		}
+		if authErr != nil {
+			ui.Warn("Invalid SSH key: %v", authErr)
+		} else {
+			pushStop := ui.Spinner("Pushing to remote...")
+			if err := gitops.PushRepo(expanded, pushAuth); err != nil {
+				pushStop(false, "Push failed — run 'git push -u origin "+*branch+"' manually")
+				ui.Warn("%v", err)
+			} else {
+				pushStop(true, "Pushed successfully")
+			}
+		}
+	}
+
+	// Point localPath at the repo we just created so sync is skipped later
+	*localPath = expanded
 	return nil
 }
 
