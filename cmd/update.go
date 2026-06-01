@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jconder44/dockflux/internal/ui"
-	"github.com/jconder44/dockflux/internal/updater"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/updater"
 	"github.com/spf13/cobra"
 )
 

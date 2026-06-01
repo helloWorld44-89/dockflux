@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	githubRepo = "jconder44/dockflux"
+	githubRepo = "helloWorld44-89/dockflux"
 	apiURL     = "https://api.github.com/repos/" + githubRepo + "/releases/latest"
 	cacheTTL   = 24 * time.Hour
 )

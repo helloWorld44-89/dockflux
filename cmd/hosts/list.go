@@ -3,8 +3,8 @@ package hosts
 import (
 	"strings"
 
-	"github.com/jconder44/dockflux/internal/inventory"
-	"github.com/jconder44/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

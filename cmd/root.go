@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jconder44/dockflux/cmd/hosts"
-	secretscmd "github.com/jconder44/dockflux/cmd/secrets"
-	"github.com/jconder44/dockflux/cmd/service"
-	"github.com/jconder44/dockflux/internal/ui"
-	"github.com/jconder44/dockflux/internal/updater"
+	"github.com/helloWorld44-89/dockflux/cmd/hosts"
+	secretscmd "github.com/helloWorld44-89/dockflux/cmd/secrets"
+	"github.com/helloWorld44-89/dockflux/cmd/service"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/updater"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// Version is set at build time via -ldflags "-X github.com/jconder44/dockflux/cmd.Version=..."
+// Version is set at build time via -ldflags "-X github.com/helloWorld44-89/dockflux/cmd.Version=..."
 var Version = "dev"
 
 var cfgFile string

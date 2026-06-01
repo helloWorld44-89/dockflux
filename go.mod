@@ -1,4 +1,4 @@
-module github.com/jconder44/dockflux
+module github.com/helloWorld44-89/dockflux
 
 go 1.26.3
 

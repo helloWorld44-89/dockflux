@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/jconder44/dockflux/internal/inventory"
-	"github.com/jconder44/dockflux/internal/runner"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/runner"
 	"github.com/spf13/cobra"
 )
 

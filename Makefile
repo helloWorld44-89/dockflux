@@ -2,7 +2,7 @@ BINARY  := dockflux
 PREFIX  ?= /usr/local
 BINDIR  := $(PREFIX)/bin
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS := -ldflags "-X github.com/jconder44/dockflux/cmd.Version=$(VERSION)"
+LDFLAGS := -ldflags "-X github.com/helloWorld44-89/dockflux/cmd.Version=$(VERSION)"
 
 .PHONY: build install uninstall clean
 

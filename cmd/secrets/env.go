@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/jconder44/dockflux/internal/config"
-	"github.com/jconder44/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

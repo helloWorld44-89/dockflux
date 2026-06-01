@@ -3,9 +3,9 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/jconder44/dockflux/internal/config"
-	"github.com/jconder44/dockflux/internal/gitops"
-	"github.com/jconder44/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/gitops"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

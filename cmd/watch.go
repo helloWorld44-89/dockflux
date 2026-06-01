@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/jconder44/dockflux/internal/config"
-	"github.com/jconder44/dockflux/internal/inventory"
-	"github.com/jconder44/dockflux/internal/reconcile"
-	"github.com/jconder44/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/reconcile"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 )
 

@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/charmbracelet/huh"
-	"github.com/jconder44/dockflux/internal/secrets"
-	"github.com/jconder44/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 )
 

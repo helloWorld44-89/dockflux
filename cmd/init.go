@@ -8,11 +8,11 @@ import (
 
 	"github.com/charmbracelet/huh"
 	gitopstransport "github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/jconder44/dockflux/internal/gitops"
-	"github.com/jconder44/dockflux/internal/importer"
-	"github.com/jconder44/dockflux/internal/inventory"
-	"github.com/jconder44/dockflux/internal/secrets"
-	"github.com/jconder44/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/gitops"
+	"github.com/helloWorld44-89/dockflux/internal/importer"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )

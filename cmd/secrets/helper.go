@@ -1,8 +1,8 @@
 package secretscmd
 
 import (
-	"github.com/jconder44/dockflux/internal/config"
-	"github.com/jconder44/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
 	"github.com/spf13/viper"
 )
 
