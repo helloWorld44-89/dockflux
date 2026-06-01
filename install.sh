@@ -75,13 +75,16 @@ ok "$OS / $ARCH"
 
 step "Fetching latest release"
 
-TAG="$(get "https://api.github.com/repos/${REPO}/releases/latest" \
-  | grep '"tag_name"' \
-  | head -1 \
-  | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')" \
-  || die "could not reach api.github.com"
+LATEST_URL="https://github.com/${REPO}/releases/latest"
+if command -v curl &>/dev/null; then
+  TAG="$(curl -fsSL --connect-timeout 10 --retry 3 -o /dev/null -w '%{url_effective}' "$LATEST_URL" \
+    | sed 's|.*/tag/||')"
+else
+  TAG="$(wget -qO /dev/null --server-response "$LATEST_URL" 2>&1 \
+    | grep -i 'location:' | tail -1 | sed 's|.*/tag/||' | tr -d '\r ')"
+fi
 
-[ -n "$TAG" ] || die "could not parse release tag — check https://github.com/${REPO}/releases"
+[ -n "$TAG" ] || die "could not resolve latest release — check https://github.com/${REPO}/releases"
 ok "$TAG"
 
 BASE_URL="https://github.com/${REPO}/releases/download/${TAG}"
