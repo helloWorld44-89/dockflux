@@ -52,8 +52,10 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 echo "Downloading $ASSET..."
-curl -fsSL "${BASE_URL}/${ASSET}" -o "${TMP}/${BIN}"
-curl -fsSL "${BASE_URL}/checksums.txt" -o "${TMP}/checksums.txt"
+curl -fL --progress-bar --connect-timeout 10 --max-time 120 \
+  "${BASE_URL}/${ASSET}" -o "${TMP}/${ASSET}"
+curl -fsSL --connect-timeout 10 --max-time 30 \
+  "${BASE_URL}/checksums.txt" -o "${TMP}/checksums.txt"
 
 # --- verify checksum ---
 
@@ -70,7 +72,8 @@ fi
 
 cd - >/dev/null
 
-chmod +x "${TMP}/${BIN}"
+chmod +x "${TMP}/${ASSET}"
+mv "${TMP}/${ASSET}" "${TMP}/${BIN}"
 
 # --- install ---
 
