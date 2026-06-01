@@ -14,7 +14,7 @@ State is tracked in a local lockfile so you always know what commit is running w
 ## Install
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/helloWorld44-89/dockflux/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/helloWorld44-89/dockflux/master/install.sh | bash
 ```
 
 Supports Linux and macOS on amd64 and arm64. The installer downloads the correct binary, verifies its SHA256 checksum, and places it in `/usr/local/bin`.
