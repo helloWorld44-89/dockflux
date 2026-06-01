@@ -7,9 +7,14 @@ import (
 	"github.com/jconder44/dockflux/cmd/hosts"
 	secretscmd "github.com/jconder44/dockflux/cmd/secrets"
 	"github.com/jconder44/dockflux/cmd/service"
+	"github.com/jconder44/dockflux/internal/ui"
+	"github.com/jconder44/dockflux/internal/updater"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
+
+// Version is set at build time via -ldflags "-X github.com/jconder44/dockflux/cmd.Version=..."
+var Version = "dev"
 
 var cfgFile string
 var inventoryFile string
@@ -17,6 +22,14 @@ var inventoryFile string
 var rootCmd = &cobra.Command{
 	Use:   "dockflux",
 	Short: "Deploy Docker Compose stacks from a git repo to a fleet of hosts",
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		if cmd.Use == "update" {
+			return
+		}
+		if newer := updater.CheckForUpdate(Version); newer != "" {
+			ui.Warn("dockflux %s is available (you have %s) — run 'dockflux update' to upgrade", newer, Version)
+		}
+	},
 }
 
 func Execute() error {
@@ -24,8 +37,9 @@ func Execute() error {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
+	cobra.OnInitialize(initConfig, updater.RefreshCacheAsync)
 
+	rootCmd.Version = Version
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default: ./dockflux.yml)")
 	rootCmd.PersistentFlags().StringVar(&inventoryFile, "inventory", "", "inventory file (default: from config)")
 
@@ -40,6 +54,7 @@ func init() {
 	rootCmd.AddCommand(diffCmd)
 	rootCmd.AddCommand(logsCmd)
 	rootCmd.AddCommand(execCmd)
+	rootCmd.AddCommand(updateCmd)
 	rootCmd.AddCommand(hosts.HostsCmd)
 	rootCmd.AddCommand(service.ServiceCmd)
 	rootCmd.AddCommand(secretscmd.SecretsCmd)
