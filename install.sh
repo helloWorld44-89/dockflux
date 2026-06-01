@@ -51,11 +51,26 @@ BASE_URL="https://github.com/${REPO}/releases/download/${TAG}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
+download() {
+  local url="$1" dest="$2" silent="$3"
+  if command -v wget &>/dev/null; then
+    if [ "$silent" = "true" ]; then
+      wget -q -O "$dest" "$url"
+    else
+      wget --show-progress -q -O "$dest" "$url" 2>/dev/tty
+    fi
+  else
+    if [ "$silent" = "true" ]; then
+      curl -fsSL --connect-timeout 10 --max-time 60 --retry 3 --retry-delay 2 -o "$dest" "$url"
+    else
+      curl -fL --connect-timeout 10 --max-time 120 --retry 3 --retry-delay 2 -o "$dest" "$url" 2>/dev/tty
+    fi
+  fi
+}
+
 echo "Downloading $ASSET..."
-curl -fL --connect-timeout 10 --max-time 120 \
-  "${BASE_URL}/${ASSET}" -o "${TMP}/${ASSET}" 2>/dev/tty
-curl -fsSL --connect-timeout 10 --max-time 30 \
-  "${BASE_URL}/checksums.txt" -o "${TMP}/checksums.txt"
+download "${BASE_URL}/${ASSET}" "${TMP}/${ASSET}" "false"
+download "${BASE_URL}/checksums.txt" "${TMP}/checksums.txt" "true"
 
 # --- verify checksum ---
 
