@@ -52,8 +52,8 @@ TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
 echo "Downloading $ASSET..."
-curl -fL --progress-bar --connect-timeout 10 --max-time 120 \
-  "${BASE_URL}/${ASSET}" -o "${TMP}/${ASSET}"
+curl -fL --connect-timeout 10 --max-time 120 \
+  "${BASE_URL}/${ASSET}" -o "${TMP}/${ASSET}" 2>/dev/tty
 curl -fsSL --connect-timeout 10 --max-time 30 \
   "${BASE_URL}/checksums.txt" -o "${TMP}/checksums.txt"
 
