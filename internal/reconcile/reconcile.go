@@ -59,7 +59,13 @@ func Run(ctx context.Context, cfg *config.Config, hosts []*inventory.Host, dryRu
 		}
 		stackName := entry.Name()
 
-		if isUpToDate(lf, stackName, hosts, head) {
+		stackHosts := inventory.FilterForStack(hosts, stackName)
+		if len(stackHosts) == 0 {
+			result.Skipped = append(result.Skipped, stackName)
+			continue
+		}
+
+		if isUpToDate(lf, stackName, stackHosts, head) {
 			result.Skipped = append(result.Skipped, stackName)
 			continue
 		}
@@ -74,7 +80,7 @@ func Run(ctx context.Context, cfg *config.Config, hosts []*inventory.Host, dryRu
 			Commit:    head,
 		}
 
-		if err := deploy.Run(ctx, hosts, opts, lf, cfg.StateFile, nil); err != nil {
+		if err := deploy.Run(ctx, stackHosts, opts, lf, cfg.StateFile, nil); err != nil {
 			ui.Error("Failed to deploy %s: %v", stackName, err)
 			result.Failed = append(result.Failed, stackName)
 			continue

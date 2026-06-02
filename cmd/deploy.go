@@ -46,6 +46,7 @@ func runComposeAction(cmd *cobra.Command, args []string, action runner.ComposeAc
 	if err != nil {
 		return err
 	}
+	hosts = inventory.FilterForStack(hosts, stackName)
 
 	lf, err := lockfile.Load(cfg.StateFile)
 	if err != nil {

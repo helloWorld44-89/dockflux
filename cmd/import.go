@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 
 	"github.com/helloWorld44-89/dockflux/internal/importer"
 	"github.com/helloWorld44-89/dockflux/internal/inventory"
@@ -53,6 +54,7 @@ func runImport(cmd *cobra.Command, args []string) error {
 	}
 
 	totalImported, totalSkipped, totalEmpty := 0, 0, 0
+	invChanged := false
 
 	// stackSecrets accumulates env values across all hosts to save in one pass.
 	stackSecrets := make(map[string]map[string]string)
@@ -71,6 +73,12 @@ func runImport(cmd *cobra.Command, args []string) error {
 		}
 		stop(true, fmt.Sprintf("%s: %d stack(s) discovered", host.Name, len(results)))
 
+		// Collect stacks that were successfully imported for this host.
+		knownStacks := make(map[string]bool)
+		for _, s := range host.Stacks {
+			knownStacks[s] = true
+		}
+
 		for _, r := range results {
 			switch {
 			case r.Skipped:
@@ -85,7 +93,30 @@ func runImport(cmd *cobra.Command, args []string) error {
 				if len(r.Secrets) > 0 {
 					stackSecrets[r.Stack] = r.Secrets
 				}
+				if !knownStacks[r.Stack] {
+					knownStacks[r.Stack] = true
+					invChanged = true
+				}
 			}
+		}
+
+		// Write merged stacks list back to the host entry.
+		if invChanged {
+			stacks := make([]string, 0, len(knownStacks))
+			for s := range knownStacks {
+				stacks = append(stacks, s)
+			}
+			sort.Strings(stacks)
+			host.Stacks = stacks
+		}
+	}
+
+	// Persist inventory if any host gained new stack assignments.
+	if invChanged {
+		if err := inventory.Save(cfg.Inventory, inv); err != nil {
+			ui.Warn("Could not update inventory: %v", err)
+		} else {
+			pterm.Success.Printf("Updated inventory with stack assignments.\n")
 		}
 	}
 
