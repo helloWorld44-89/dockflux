@@ -246,6 +246,32 @@ func (r *RemoteRunner) Exec(ctx context.Context, opts ExecOptions) error {
 	}
 }
 
+// EnsureDir verifies that dir is writable on host, creating it and fixing
+// ownership via sudo if not. Returns nil when the directory is ready.
+func EnsureDir(ctx context.Context, host *inventory.Host, dir string) error {
+	r, err := newRemoteRunner(host)
+	if err != nil {
+		return err
+	}
+	defer r.client.Close()
+
+	// Check: does the dir exist and is it writable?
+	out, err := r.sshRun(ctx, fmt.Sprintf("test -d %s && test -w %s && echo ok", shellQuote(dir), shellQuote(dir)), false)
+	if err == nil && strings.TrimSpace(out) == "ok" {
+		return nil
+	}
+
+	// Dir exists but isn't writable — fix ownership. Create it first only if missing.
+	fix := fmt.Sprintf(
+		"if [ ! -d %s ]; then sudo mkdir -p %s; fi && sudo chown $(id -un):$(id -gn) %s",
+		shellQuote(dir), shellQuote(dir), shellQuote(dir),
+	)
+	if _, err := r.sshRun(ctx, fix, false); err != nil {
+		return fmt.Errorf("could not fix permissions on %s (try: sudo chown $USER:$USER %s): %w", dir, dir, err)
+	}
+	return nil
+}
+
 func (r *RemoteRunner) Ping(ctx context.Context) error {
 	dialer := net.Dialer{}
 	addr := fmt.Sprintf("%s:%d", r.host.Host, r.host.Port)

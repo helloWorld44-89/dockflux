@@ -11,6 +11,7 @@ import (
 	"github.com/helloWorld44-89/dockflux/internal/gitops"
 	"github.com/helloWorld44-89/dockflux/internal/importer"
 	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/runner"
 	"github.com/helloWorld44-89/dockflux/internal/secrets"
 	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/pterm/pterm"
@@ -239,6 +240,21 @@ func runInit(cmd *cobra.Command, args []string) error {
 		repoInvPath := filepath.Join(expandHome(localPath), "inventory.yml")
 		if err := writeIfNotExists(repoInvPath, invContent); err != nil {
 			ui.Warn("Could not write inventory.yml to repo: %v", err)
+		}
+	}
+
+	// ── Check / fix remote compose_dir permissions ────────────────────────────
+	if len(remoteHosts) > 0 {
+		fmt.Println()
+		pterm.DefaultSection.Println("Checking remote permissions")
+		for _, h := range remoteHosts {
+			host := hostEntryToInventoryHost(h)
+			stop := ui.Spinner(fmt.Sprintf("Checking %s (%s)", host.Name, host.Host))
+			if err := runner.EnsureDir(rootCmd.Context(), host, h.composeDir); err != nil {
+				stop(false, fmt.Sprintf("%s: %v", host.Name, err))
+			} else {
+				stop(true, fmt.Sprintf("%s: %s is writable", host.Name, h.composeDir))
+			}
 		}
 	}
 
