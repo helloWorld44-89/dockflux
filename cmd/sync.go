@@ -48,6 +48,9 @@ func runSync(cmd *cobra.Command, args []string) error {
 func loadConfig() (*config.Config, error) {
 	cfgPath := viper.ConfigFileUsed()
 	if cfgPath == "" {
+		cfgPath = config.FindConfigFile()
+	}
+	if cfgPath == "" {
 		cfgPath = ".dockflux/dockflux.yml"
 	}
 	return config.Load(cfgPath)

@@ -7,6 +7,7 @@ import (
 	"github.com/helloWorld44-89/dockflux/cmd/hosts"
 	secretscmd "github.com/helloWorld44-89/dockflux/cmd/secrets"
 	"github.com/helloWorld44-89/dockflux/cmd/service"
+	"github.com/helloWorld44-89/dockflux/internal/config"
 	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/helloWorld44-89/dockflux/internal/updater"
 	"github.com/spf13/cobra"
@@ -63,6 +64,8 @@ func init() {
 func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
+	} else if found := config.FindConfigFile(); found != "" {
+		viper.SetConfigFile(found)
 	} else {
 		viper.AddConfigPath(".dockflux")
 		viper.AddConfigPath(".")

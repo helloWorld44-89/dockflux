@@ -3,6 +3,7 @@ package hosts
 import (
 	"strings"
 
+	"github.com/helloWorld44-89/dockflux/internal/config"
 	"github.com/helloWorld44-89/dockflux/internal/inventory"
 	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
@@ -37,9 +38,16 @@ func runList(cmd *cobra.Command, args []string) error {
 }
 
 func loadInventory() (*inventory.Inventory, error) {
-	invPath := viper.GetString("inventory")
-	if invPath == "" {
-		invPath = ".dockflux/inventory.yml"
+	cfgPath := viper.ConfigFileUsed()
+	if cfgPath == "" {
+		cfgPath = config.FindConfigFile()
 	}
-	return inventory.Load(invPath)
+	if cfgPath == "" {
+		cfgPath = ".dockflux/dockflux.yml"
+	}
+	cfg, err := config.Load(cfgPath)
+	if err != nil {
+		return nil, err
+	}
+	return inventory.Load(cfg.Inventory)
 }

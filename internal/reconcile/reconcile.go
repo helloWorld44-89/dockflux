@@ -2,6 +2,7 @@ package reconcile
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -22,15 +23,29 @@ type Result struct {
 	Failed    []string // stacks that errored
 }
 
-// Run performs one reconcile pass: sync repo, find stale/undeployed stacks,
-// deploy them to the given hosts. If dryRun is true, nothing is deployed.
-func Run(ctx context.Context, cfg *config.Config, hosts []*inventory.Host, dryRun bool) (*Result, error) {
+// Run performs one reconcile pass: sync repo, reload inventory, find stale/undeployed
+// stacks, and deploy them to their assigned hosts. If dryRun is true, nothing is deployed.
+// Targeting flags mirror the CLI flags; when all are zero-values --all is assumed.
+func Run(ctx context.Context, cfg *config.Config, hostFlag, groupFlag string, allFlag, localFlag bool, dryRun bool) (*Result, error) {
 	// Sync repo — build auth from config key path (empty = unauthenticated / ssh-agent)
 	auth, err := gitops.SSHAuth(cfg.Repo.Key)
 	if err != nil {
 		return nil, err
 	}
 	if err := gitops.CloneOrPull(cfg.Repo.URL, cfg.Repo.Branch, cfg.Repo.LocalPath, auth); err != nil {
+		return nil, err
+	}
+
+	// Reload inventory from the repo after pull so new stack assignments take effect.
+	inv, err := inventory.Load(cfg.Inventory)
+	if err != nil {
+		return nil, fmt.Errorf("loading inventory: %w", err)
+	}
+	if hostFlag == "" && groupFlag == "" && !localFlag {
+		allFlag = true
+	}
+	hosts, err := inventory.ResolveHosts(inv, hostFlag, groupFlag, allFlag, localFlag)
+	if err != nil {
 		return nil, err
 	}
 

@@ -11,6 +11,9 @@ import (
 func secretsFilePath() string {
 	cfgPath := viper.ConfigFileUsed()
 	if cfgPath == "" {
+		cfgPath = config.FindConfigFile()
+	}
+	if cfgPath == "" {
 		cfgPath = ".dockflux/dockflux.yml"
 	}
 	cfg, err := config.Load(cfgPath)

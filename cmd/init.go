@@ -234,6 +234,14 @@ func runInit(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Write inventory.yml into the repo so it travels with the stacks.
+	if doSync {
+		repoInvPath := filepath.Join(expandHome(localPath), "inventory.yml")
+		if err := writeIfNotExists(repoInvPath, invContent); err != nil {
+			ui.Warn("Could not write inventory.yml to repo: %v", err)
+		}
+	}
+
 	// ── Import existing stacks ────────────────────────────────────────────────
 	if doSync && len(remoteHosts) > 0 {
 		var doImport bool
@@ -558,7 +566,6 @@ func buildDockfluxYML(repoURL, authMethod, branch, localPath, secretsPath string
 
 stacks_dir: stacks/
 state_file: ./dockflux.lock
-inventory: ./inventory.yml
 secrets_file: %s
 `, repoURL, branch, localPath, keyLine, secretsPath)
 }

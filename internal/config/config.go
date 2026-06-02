@@ -51,7 +51,11 @@ func Load(path string) (*Config, error) {
 		cfg.StateFile = "dockflux.lock"
 	}
 	if cfg.Inventory == "" {
-		cfg.Inventory = "inventory.yml"
+		if cfg.Repo.LocalPath != "" {
+			cfg.Inventory = filepath.Join(cfg.Repo.LocalPath, "inventory.yml")
+		} else {
+			cfg.Inventory = "inventory.yml"
+		}
 	}
 	if cfg.SecretsFile == "" {
 		home, _ := os.UserHomeDir()
@@ -68,6 +72,36 @@ func Load(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
+}
+
+// FindConfigFile walks up from the current working directory looking for
+// .dockflux/dockflux.yml, then falls back to ~/.dockflux/dockflux.yml.
+// Returns an empty string if no config file is found.
+func FindConfigFile() string {
+	dir, err := os.Getwd()
+	if err != nil {
+		return ""
+	}
+	for {
+		candidate := filepath.Join(dir, ".dockflux", "dockflux.yml")
+		if _, err := os.Stat(candidate); err == nil {
+			return candidate
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			break
+		}
+		dir = parent
+	}
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return ""
+	}
+	candidate := filepath.Join(home, ".dockflux", "dockflux.yml")
+	if _, err := os.Stat(candidate); err == nil {
+		return candidate
+	}
+	return ""
 }
 
 func expandPath(p string) string {

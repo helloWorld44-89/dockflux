@@ -60,6 +60,9 @@ type Inventory struct {
 
 func Load(path string) (*Inventory, error) {
 	data, err := os.ReadFile(path)
+	if os.IsNotExist(err) {
+		return &Inventory{Hosts: make(map[string]*Host)}, nil
+	}
 	if err != nil {
 		return nil, fmt.Errorf("reading inventory %s: %w", path, err)
 	}

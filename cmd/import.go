@@ -5,9 +5,13 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"time"
 
+	"github.com/charmbracelet/huh"
+	"github.com/helloWorld44-89/dockflux/internal/gitops"
 	"github.com/helloWorld44-89/dockflux/internal/importer"
 	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/lockfile"
 	"github.com/helloWorld44-89/dockflux/internal/secrets"
 	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/pterm/pterm"
@@ -36,12 +40,16 @@ func runImport(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	if err := os.MkdirAll(filepath.Dir(cfg.StateFile), 0755); err != nil {
+		return fmt.Errorf("creating config directory: %w", err)
+	}
+
 	inv, err := inventory.Load(cfg.Inventory)
 	if err != nil {
 		return err
 	}
 
-	hosts, err := resolveTargets(cmd, inv)
+	hosts, err := resolveOrPromptHosts(cmd, inv)
 	if err != nil {
 		return err
 	}
@@ -55,6 +63,9 @@ func runImport(cmd *cobra.Command, args []string) error {
 
 	totalImported, totalSkipped, totalEmpty := 0, 0, 0
 	invChanged := false
+
+	// importedPerHost tracks host → stacks successfully downloaded, for lockfile.
+	importedPerHost := make(map[*inventory.Host][]string)
 
 	// stackSecrets accumulates env values across all hosts to save in one pass.
 	stackSecrets := make(map[string]map[string]string)
@@ -93,6 +104,7 @@ func runImport(cmd *cobra.Command, args []string) error {
 				if len(r.Secrets) > 0 {
 					stackSecrets[r.Stack] = r.Secrets
 				}
+				importedPerHost[host] = append(importedPerHost[host], r.Stack)
 				if !knownStacks[r.Stack] {
 					knownStacks[r.Stack] = true
 					invChanged = true
@@ -117,6 +129,33 @@ func runImport(cmd *cobra.Command, args []string) error {
 			ui.Warn("Could not update inventory: %v", err)
 		} else {
 			pterm.Success.Printf("Updated inventory with stack assignments.\n")
+		}
+	}
+
+	// Populate the lockfile so imported stacks show as deployed.
+	if len(importedPerHost) > 0 {
+		commit, err := gitops.HeadCommit(cfg.Repo.LocalPath)
+		if err != nil {
+			commit = "imported"
+		}
+
+		lf, err := lockfile.Load(cfg.StateFile)
+		if err != nil {
+			ui.Warn("Could not load lockfile: %v", err)
+		} else {
+			now := time.Now().UTC()
+			for host, stacks := range importedPerHost {
+				for _, stack := range stacks {
+					lf.SetEntry(stack, host.Name, &lockfile.LockEntry{
+						Commit:     commit,
+						DeployedAt: now,
+						Status:     "running",
+					})
+				}
+			}
+			if err := lockfile.Save(cfg.StateFile, lf); err != nil {
+				ui.Warn("Could not save lockfile: %v", err)
+			}
 		}
 	}
 
@@ -161,4 +200,58 @@ func runImport(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
+}
+
+// resolveOrPromptHosts returns the target hosts, prompting for connection
+// details if --host names a host not yet in inventory.
+func resolveOrPromptHosts(cmd *cobra.Command, inv *inventory.Inventory) ([]*inventory.Host, error) {
+	hostFlag, _ := cmd.Flags().GetString("host")
+
+	// Fast path: standard resolution (works for --all, --group, --local, or
+	// --host when the entry already exists).
+	hosts, err := resolveTargets(cmd, inv)
+	if err == nil {
+		return hosts, nil
+	}
+
+	// Only attempt interactive creation for an unknown --host name.
+	if hostFlag == "" {
+		return nil, err
+	}
+
+	pterm.Info.Printf("Host %q not found in inventory — enter connection details to add it.\n", hostFlag)
+
+	user := "deploy"
+	key := "~/.ssh/id_rsa"
+	composeDir := "/opt/stacks"
+	var address string
+
+	if formErr := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().Title("Address or IP").Placeholder("192.168.1.10").Value(&address).
+				Validate(func(s string) error {
+					if s == "" {
+						return fmt.Errorf("address is required")
+					}
+					return nil
+				}),
+			huh.NewInput().Title("SSH user").Value(&user),
+			huh.NewInput().Title("SSH key path").Value(&key),
+			huh.NewInput().Title("Remote compose directory").Value(&composeDir),
+		),
+	).WithTheme(huh.ThemeDracula()).Run(); formErr != nil {
+		return nil, formErr
+	}
+
+	host := &inventory.Host{
+		Name:       hostFlag,
+		Type:       inventory.HostTypeRemote,
+		Host:       address,
+		Port:       22,
+		User:       user,
+		Key:        expandHome(key),
+		ComposeDir: composeDir,
+	}
+	inv.Hosts[hostFlag] = host
+	return []*inventory.Host{host}, nil
 }

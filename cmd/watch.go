@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/helloWorld44-89/dockflux/internal/config"
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
 	"github.com/helloWorld44-89/dockflux/internal/reconcile"
 	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
@@ -39,29 +38,18 @@ func runWatch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	inv, err := inventory.Load(cfg.Inventory)
-	if err != nil {
-		return err
-	}
-
-	hosts, err := resolveWatchTargets(cmd, inv)
-	if err != nil {
-		return err
-	}
-
-	ui.Info("dockflux watch started — interval: %s, hosts: %d, dry-run: %v",
-		interval, len(hosts), dryRun)
+	ui.Info("dockflux watch started — interval: %s, dry-run: %v", interval, dryRun)
 
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
-	// Run immediately on start, then on each tick
-	tick(cmd, cfg, hosts, dryRun)
+	// Run immediately on start, then on each tick.
+	tick(cmd, cfg, dryRun)
 
 	for {
 		select {
 		case <-ticker.C:
-			tick(cmd, cfg, hosts, dryRun)
+			tick(cmd, cfg, dryRun)
 		case <-cmd.Context().Done():
 			ui.Info("watch stopped")
 			return nil
@@ -69,11 +57,16 @@ func runWatch(cmd *cobra.Command, args []string) error {
 	}
 }
 
-func tick(cmd *cobra.Command, cfg *config.Config, hosts []*inventory.Host, dryRun bool) {
+func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool) {
+	hostFlag, _ := cmd.Flags().GetString("host")
+	groupFlag, _ := cmd.Flags().GetString("group")
+	allFlag, _ := cmd.Flags().GetBool("all")
+	localFlag, _ := cmd.Flags().GetBool("local")
+
 	ts := time.Now().Format("2006-01-02 15:04:05")
 	fmt.Printf("\n[%s] reconciling...\n", ts)
 
-	result, err := reconcile.Run(cmd.Context(), cfg, hosts, dryRun)
+	result, err := reconcile.Run(cmd.Context(), cfg, hostFlag, groupFlag, allFlag, localFlag, dryRun)
 	if err != nil {
 		ui.Error("reconcile error: %v", err)
 		return
@@ -88,18 +81,4 @@ func tick(cmd *cobra.Command, cfg *config.Config, hosts []*inventory.Host, dryRu
 	if len(result.Skipped) > 0 {
 		ui.Info("up to date: %v", result.Skipped)
 	}
-}
-
-// resolveWatchTargets defaults to --all when no targeting flag is provided.
-func resolveWatchTargets(cmd *cobra.Command, inv *inventory.Inventory) ([]*inventory.Host, error) {
-	hostFlag, _ := cmd.Flags().GetString("host")
-	groupFlag, _ := cmd.Flags().GetString("group")
-	allFlag, _ := cmd.Flags().GetBool("all")
-	localFlag, _ := cmd.Flags().GetBool("local")
-
-	if hostFlag == "" && groupFlag == "" && !localFlag {
-		allFlag = true
-	}
-
-	return inventory.ResolveHosts(inv, hostFlag, groupFlag, allFlag, localFlag)
 }
