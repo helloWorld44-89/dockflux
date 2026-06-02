@@ -64,6 +64,7 @@ func initConfig() {
 	if cfgFile != "" {
 		viper.SetConfigFile(cfgFile)
 	} else {
+		viper.AddConfigPath(".dockflux")
 		viper.AddConfigPath(".")
 		viper.SetConfigName("dockflux")
 		viper.SetConfigType("yaml")

@@ -22,7 +22,7 @@ func runEnv(cmd *cobra.Command, args []string) error {
 
 	cfgPath := viper.ConfigFileUsed()
 	if cfgPath == "" {
-		cfgPath = "dockflux.yml"
+		cfgPath = ".dockflux/dockflux.yml"
 	}
 	cfg, err := config.Load(cfgPath)
 	if err != nil {

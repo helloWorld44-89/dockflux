@@ -7,6 +7,7 @@ import (
 
 	"github.com/helloWorld44-89/dockflux/internal/importer"
 	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
 	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
@@ -18,7 +19,8 @@ var importCmd = &cobra.Command{
 	Long: `Connects to each target host via SSH/SFTP, discovers stack directories under
 compose_dir, and downloads compose files into the local stacks directory.
 
-.env files are intentionally skipped. Store secrets with 'dockflux secrets set'.`,
+If a .env file is found it is imported as .env.example (values replaced with
+"changeme") and the real values are saved to the encrypted secrets store.`,
 	RunE: runImport,
 }
 
@@ -52,6 +54,9 @@ func runImport(cmd *cobra.Command, args []string) error {
 
 	totalImported, totalSkipped, totalEmpty := 0, 0, 0
 
+	// stackSecrets accumulates env values across all hosts to save in one pass.
+	stackSecrets := make(map[string]map[string]string)
+
 	for _, host := range hosts {
 		if host.Type == inventory.HostTypeLocal {
 			ui.Warn("Skipping local host — nothing to import via SSH")
@@ -77,15 +82,45 @@ func runImport(cmd *cobra.Command, args []string) error {
 			default:
 				totalImported++
 				pterm.Success.Printf("  %-24s %v\n", r.Stack, r.Files)
+				if len(r.Secrets) > 0 {
+					stackSecrets[r.Stack] = r.Secrets
+				}
 			}
 		}
+	}
+
+	// Save imported .env values into the secrets store.
+	if len(stackSecrets) > 0 {
+		pterm.Println()
+		pterm.Info.Println("Found .env files — saving values to the secrets store.")
+		password, err := secrets.PromptPassword("Master password")
+		if err != nil {
+			return fmt.Errorf("reading password: %w", err)
+		}
+
+		store, err := secrets.Load(cfg.SecretsFile, password)
+		if err != nil {
+			return fmt.Errorf("loading secrets: %w", err)
+		}
+
+		totalKeys := 0
+		for stack, kvs := range stackSecrets {
+			for k, v := range kvs {
+				store.SetStackSecret(stack, k, v)
+				totalKeys++
+			}
+		}
+
+		if err := secrets.Save(cfg.SecretsFile, password, store); err != nil {
+			return fmt.Errorf("saving secrets: %w", err)
+		}
+		pterm.Success.Printf("Saved %d secret(s) across %d stack(s).\n", totalKeys, len(stackSecrets))
 	}
 
 	pterm.Println()
 	if totalImported > 0 {
 		pterm.Info.Printf("Imported %d stack(s) into %s\n", totalImported, stacksDir)
 		pterm.Info.Println("Review the files, then commit them to your git repo.")
-		pterm.Info.Println("To store .env secrets:  dockflux secrets set <stack> KEY value")
 	}
 	if totalSkipped > 0 {
 		pterm.Warning.Printf("%d stack(s) skipped (already exist locally).\n", totalSkipped)

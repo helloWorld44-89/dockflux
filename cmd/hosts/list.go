@@ -39,7 +39,7 @@ func runList(cmd *cobra.Command, args []string) error {
 func loadInventory() (*inventory.Inventory, error) {
 	invPath := viper.GetString("inventory")
 	if invPath == "" {
-		invPath = "inventory.yml"
+		invPath = ".dockflux/inventory.yml"
 	}
 	return inventory.Load(invPath)
 }

@@ -1,11 +1,14 @@
 package importer
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/helloWorld44-89/dockflux/internal/inventory"
 	"github.com/pkg/sftp"
@@ -14,7 +17,6 @@ import (
 )
 
 // composeFiles lists the standard filenames we attempt to pull from each stack dir.
-// .env files are intentionally excluded — store secrets with 'dockflux secrets set'.
 var composeFiles = []string{
 	"docker-compose.yml",
 	"docker-compose.yaml",
@@ -27,8 +29,9 @@ var composeFiles = []string{
 // StackResult describes the outcome of importing one stack directory.
 type StackResult struct {
 	Stack   string
-	Files   []string // filenames downloaded; nil means the stack was skipped
-	Skipped bool     // true when the local dir already exists and force=false
+	Files   []string          // filenames downloaded; nil means the stack was skipped
+	Secrets map[string]string // key/value pairs parsed from remote .env (nil if none found)
+	Skipped bool              // true when the local dir already exists and force=false
 }
 
 // ImportFromHost connects to host via SSH/SFTP, lists stack directories under
@@ -92,10 +95,58 @@ func ImportFromHost(ctx context.Context, host *inventory.Host, destDir string, f
 			// non-nil err means file doesn't exist on remote — skip silently
 		}
 
-		results = append(results, StackResult{Stack: stackName, Files: downloaded})
+		envSecrets, err := downloadEnvAsExample(sftpClient, remoteStackDir, localStackDir)
+		if err != nil {
+			return results, err
+		}
+		if envSecrets != nil {
+			downloaded = append(downloaded, ".env.example")
+		}
+
+		results = append(results, StackResult{Stack: stackName, Files: downloaded, Secrets: envSecrets})
 	}
 
 	return results, nil
+}
+
+// downloadEnvAsExample fetches .env from remoteDir, writes .env.example with
+// placeholder values in localDir, and returns the real key/value pairs for
+// import into the secrets store. Returns nil map if no .env exists on the remote.
+func downloadEnvAsExample(sftpClient *sftp.Client, remoteDir, localDir string) (map[string]string, error) {
+	src, err := sftpClient.Open(remoteDir + "/.env")
+	if err != nil {
+		return nil, nil
+	}
+	defer src.Close()
+
+	var exampleBuf bytes.Buffer
+	secretValues := make(map[string]string)
+
+	scanner := bufio.NewScanner(src)
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			exampleBuf.WriteString(line + "\n")
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			exampleBuf.WriteString(line + "\n")
+			continue
+		}
+		key := strings.TrimSpace(parts[0])
+		secretValues[key] = strings.TrimSpace(parts[1])
+		exampleBuf.WriteString(key + "=changeme\n")
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("reading remote .env: %w", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(localDir, ".env.example"), exampleBuf.Bytes(), 0644); err != nil {
+		return nil, fmt.Errorf("writing .env.example: %w", err)
+	}
+	return secretValues, nil
 }
 
 func downloadFile(sftpClient *sftp.Client, remotePath, localPath string) error {

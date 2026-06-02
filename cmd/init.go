@@ -160,17 +160,22 @@ func runInit(cmd *cobra.Command, args []string) error {
 	fmt.Println()
 	stop := ui.Spinner("Writing configuration files")
 
+	if err := os.MkdirAll(".dockflux", 0755); err != nil {
+		stop(false, "Failed to create .dockflux directory")
+		return err
+	}
+
 	secretsPath := secrets.DefaultPath()
 
 	cfgContent := buildDockfluxYML(repoURL, authMethod, branch, localPath, secretsPath)
-	if err := writeIfNotExists("dockflux.yml", cfgContent); err != nil {
-		stop(false, "Failed to write dockflux.yml")
+	if err := writeIfNotExists(".dockflux/dockflux.yml", cfgContent); err != nil {
+		stop(false, "Failed to write .dockflux/dockflux.yml")
 		return err
 	}
 
 	invContent := buildInventoryYML(remoteHosts)
-	if err := writeIfNotExists("inventory.yml", invContent); err != nil {
-		stop(false, "Failed to write inventory.yml")
+	if err := writeIfNotExists(".dockflux/inventory.yml", invContent); err != nil {
+		stop(false, "Failed to write .dockflux/inventory.yml")
 		return err
 	}
 
@@ -515,8 +520,8 @@ func printSummary(remoteHosts []hostEntry, secretsPath string, synced bool) {
 	pterm.DefaultSection.Println("Setup complete!")
 
 	items := []pterm.BulletListItem{
-		{Level: 0, Text: "dockflux.yml", TextStyle: pterm.NewStyle(pterm.FgGreen)},
-		{Level: 0, Text: "inventory.yml", TextStyle: pterm.NewStyle(pterm.FgGreen)},
+		{Level: 0, Text: ".dockflux/dockflux.yml", TextStyle: pterm.NewStyle(pterm.FgGreen)},
+		{Level: 0, Text: ".dockflux/inventory.yml", TextStyle: pterm.NewStyle(pterm.FgGreen)},
 		{Level: 0, Text: secretsPath + " (encrypted)", TextStyle: pterm.NewStyle(pterm.FgGreen)},
 	}
 	_ = pterm.DefaultBulletList.WithItems(items).Render()
