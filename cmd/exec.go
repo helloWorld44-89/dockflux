@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/darkmode_dev/dockflux/internal/inventory"
-	"github.com/darkmode_dev/dockflux/internal/runner"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/runner"
 	"github.com/spf13/cobra"
 )
 

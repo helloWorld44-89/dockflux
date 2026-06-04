@@ -1,8 +1,8 @@
 package secretscmd
 
 import (
-	"github.com/darkmode_dev/dockflux/internal/config"
-	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
 	"github.com/spf13/viper"
 )
 

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/darkmode_dev/dockflux/internal/lockfile"
+	"github.com/helloWorld44-89/dockflux/internal/lockfile"
 )
 
 func TestSetGetEntry(t *testing.T) {

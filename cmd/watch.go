@@ -5,10 +5,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/darkmode_dev/dockflux/internal/config"
-	"github.com/darkmode_dev/dockflux/internal/reconcile"
-	"github.com/darkmode_dev/dockflux/internal/secrets"
-	"github.com/darkmode_dev/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/reconcile"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 )
 

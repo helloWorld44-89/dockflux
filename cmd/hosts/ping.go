@@ -3,8 +3,8 @@ package hosts
 import (
 	"fmt"
 
-	"github.com/darkmode_dev/dockflux/internal/runner"
-	"github.com/darkmode_dev/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/runner"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 	"golang.org/x/sync/errgroup"
 )

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
 )
 
 func writeInventory(t *testing.T, content string) string {

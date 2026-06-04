@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/helloWorld44-89/dockflux/internal/secrets"
 )
 
 func TestGenerateEnv_WithExample(t *testing.T) {

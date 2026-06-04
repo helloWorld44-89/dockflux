@@ -6,8 +6,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/darkmode_dev/dockflux/internal/ui"
-	"github.com/darkmode_dev/dockflux/internal/updater"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/updater"
 	"github.com/spf13/cobra"
 )
 

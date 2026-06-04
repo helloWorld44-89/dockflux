@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/helloWorld44-89/dockflux/internal/inventory"
 )
 
 type ComposeAction string

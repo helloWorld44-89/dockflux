@@ -1,8 +1,8 @@
 # dockflux
 
-[![CI](https://github.com/darkmode_dev/dockflux/actions/workflows/ci.yml/badge.svg)](https://github.com/darkmode_dev/dockflux/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/darkmode_dev/dockflux)](https://goreportcard.com/report/github.com/darkmode_dev/dockflux)
-[![Latest Release](https://img.shields.io/github/v/release/darkmode_dev/dockflux)](https://github.com/darkmode_dev/dockflux/releases/latest)
+[![CI](https://github.com/helloWorld44-89/dockflux/actions/workflows/ci.yml/badge.svg)](https://github.com/helloWorld44-89/dockflux/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/helloWorld44-89/dockflux)](https://goreportcard.com/report/github.com/helloWorld44-89/dockflux)
+[![Latest Release](https://img.shields.io/github/v/release/helloWorld44-89/dockflux)](https://github.com/helloWorld44-89/dockflux/releases/latest)
 [![Go Version](https://img.shields.io/badge/go-1.26-00ADD8?logo=go)](go.mod)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -70,7 +70,7 @@ dockflux deploy <stack> --all
 ## Install
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/darkmode_dev/dockflux/master/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/helloWorld44-89/dockflux/master/install.sh | bash
 ```
 
 Supports Linux and macOS on amd64 and arm64. The installer downloads the correct binary, verifies its SHA256 checksum, and places it in `/usr/local/bin`.

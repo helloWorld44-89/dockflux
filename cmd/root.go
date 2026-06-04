@@ -4,17 +4,17 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/darkmode_dev/dockflux/cmd/hosts"
-	secretscmd "github.com/darkmode_dev/dockflux/cmd/secrets"
-	"github.com/darkmode_dev/dockflux/cmd/service"
-	"github.com/darkmode_dev/dockflux/internal/config"
-	"github.com/darkmode_dev/dockflux/internal/ui"
-	"github.com/darkmode_dev/dockflux/internal/updater"
+	"github.com/helloWorld44-89/dockflux/cmd/hosts"
+	secretscmd "github.com/helloWorld44-89/dockflux/cmd/secrets"
+	"github.com/helloWorld44-89/dockflux/cmd/service"
+	"github.com/helloWorld44-89/dockflux/internal/config"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/updater"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
 
-// Version is set at build time via -ldflags "-X github.com/darkmode_dev/dockflux/cmd.Version=..."
+// Version is set at build time via -ldflags "-X github.com/helloWorld44-89/dockflux/cmd.Version=..."
 var Version = "dev"
 
 var cfgFile string

@@ -4,9 +4,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/darkmode_dev/dockflux/internal/gitops"
-	"github.com/darkmode_dev/dockflux/internal/lockfile"
-	"github.com/darkmode_dev/dockflux/internal/ui"
+	"github.com/helloWorld44-89/dockflux/internal/gitops"
+	"github.com/helloWorld44-89/dockflux/internal/lockfile"
+	"github.com/helloWorld44-89/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 )
 
