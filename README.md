@@ -1,5 +1,11 @@
 # dockflux
 
+[![CI](https://github.com/darkmode_dev/dockflux/actions/workflows/ci.yml/badge.svg)](https://github.com/darkmode_dev/dockflux/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/darkmode_dev/dockflux)](https://goreportcard.com/report/github.com/darkmode_dev/dockflux)
+[![Latest Release](https://img.shields.io/github/v/release/darkmode_dev/dockflux)](https://github.com/darkmode_dev/dockflux/releases/latest)
+[![Go Version](https://img.shields.io/badge/go-1.26-00ADD8?logo=go)](go.mod)
+[![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+
 A lightweight, Flux-inspired GitOps tool for managing Docker Compose stacks across a fleet of hosts. Store your stacks in a git repo, point dockflux at it, and it deploys to local or remote hosts over SSH — no agents on the target hosts, no Kubernetes, no complexity.
 
 ## Overview
