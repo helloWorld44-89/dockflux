@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/helloWorld44-89/dockflux/internal/lockfile"
+	"github.com/darkmode_dev/dockflux/internal/lockfile"
 	"github.com/pterm/pterm"
 )
 

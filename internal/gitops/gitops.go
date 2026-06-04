@@ -160,7 +160,6 @@ func HeadCommit(localPath string) (string, error) {
 		return "", fmt.Errorf("reading HEAD: %w", err)
 	}
 
-	// Fix #7: guard against unexpectedly short hash strings
 	hash := ref.Hash().String()
 	if len(hash) >= 7 {
 		return hash[:7], nil

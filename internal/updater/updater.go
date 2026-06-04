@@ -17,7 +17,7 @@ import (
 )
 
 const (
-	githubRepo = "helloWorld44-89/dockflux"
+	githubRepo = "darkmode_dev/dockflux"
 	apiURL     = "https://api.github.com/repos/" + githubRepo + "/releases/latest"
 	cacheTTL   = 24 * time.Hour
 )

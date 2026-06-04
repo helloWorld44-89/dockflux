@@ -6,11 +6,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
-	"github.com/helloWorld44-89/dockflux/internal/lockfile"
-	"github.com/helloWorld44-89/dockflux/internal/runner"
-	"github.com/helloWorld44-89/dockflux/internal/secrets"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/lockfile"
+	"github.com/darkmode_dev/dockflux/internal/runner"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -90,7 +90,6 @@ func Run(
 		return err
 	}
 
-	// Fix #5: save lockfile for all actions including restart
 	if !opts.DryRun {
 		return lockfile.Save(lfPath, lf)
 	}

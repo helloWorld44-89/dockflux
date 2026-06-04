@@ -3,9 +3,9 @@ package hosts
 import (
 	"strings"
 
-	"github.com/helloWorld44-89/dockflux/internal/config"
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/config"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

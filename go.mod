@@ -1,4 +1,4 @@
-module github.com/helloWorld44-89/dockflux
+module github.com/darkmode_dev/dockflux
 
 go 1.26.3
 

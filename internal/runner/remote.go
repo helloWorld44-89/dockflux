@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
 	"github.com/pkg/sftp"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/crypto/ssh/knownhosts"
@@ -35,7 +35,6 @@ func newRemoteRunner(host *inventory.Host) (*RemoteRunner, error) {
 
 	hostKeyCallback, err := buildHostKeyCallback()
 	if err != nil {
-		// Fix #6: warn loudly instead of silently bypassing host verification
 		fmt.Fprintf(os.Stderr,
 			"WARNING: could not load ~/.ssh/known_hosts (%v); SSH host key verification is DISABLED — add the host key first with ssh-keyscan\n", err)
 		hostKeyCallback = ssh.InsecureIgnoreHostKey() //nolint:gosec
@@ -128,7 +127,6 @@ func (r *RemoteRunner) CopyStack(ctx context.Context, opts RunOptions) error {
 }
 
 func (r *RemoteRunner) ComposeRun(ctx context.Context, opts RunOptions) (string, error) {
-	// Fix #1: quote both components to prevent shell injection
 	remoteDir := shellQuote(opts.ComposeDir + "/" + opts.Stack)
 
 	var sb strings.Builder
@@ -168,7 +166,6 @@ func (r *RemoteRunner) sshRun(ctx context.Context, command string, dryRun bool) 
 	select {
 	case <-ctx.Done():
 		_ = session.Signal(ssh.SIGINT)
-		// Fix #2: drain done so the goroutine finishes before we read buf
 		<-done
 		return buf.String(), ctx.Err()
 	case err := <-done:
@@ -190,7 +187,6 @@ func (r *RemoteRunner) Logs(ctx context.Context, opts LogOptions) error {
 	if opts.Follow {
 		followFlag = "--follow"
 	}
-	// Fix #1: quote path components
 	remoteDir := shellQuote(opts.ComposeDir + "/" + opts.Stack)
 	cmd := fmt.Sprintf("cd %s && docker compose logs %s", remoteDir, followFlag)
 
@@ -225,7 +221,6 @@ func (r *RemoteRunner) Exec(ctx context.Context, opts ExecOptions) error {
 		return fmt.Errorf("requesting pty: %w", err)
 	}
 
-	// Fix #1: quote path and service name; each Cmd element is quoted individually
 	remoteDir := shellQuote(opts.ComposeDir + "/" + opts.Stack)
 	quotedArgs := make([]string, len(opts.Cmd))
 	for i, arg := range opts.Cmd {

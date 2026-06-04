@@ -2,9 +2,9 @@ BINARY  := dockflux
 PREFIX  ?= /usr/local
 BINDIR  := $(PREFIX)/bin
 VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-LDFLAGS := -ldflags "-X github.com/helloWorld44-89/dockflux/cmd.Version=$(VERSION)"
+LDFLAGS := -ldflags "-X github.com/darkmode_dev/dockflux/cmd.Version=$(VERSION)"
 
-.PHONY: build install uninstall clean
+.PHONY: build install uninstall clean test
 
 build:
 	go build $(LDFLAGS) -o $(BINARY) .
@@ -17,6 +17,9 @@ install: build
 uninstall:
 	rm -f $(BINDIR)/$(BINARY)
 	@echo "Removed $(BINDIR)/$(BINARY)"
+
+test:
+	go test ./...
 
 clean:
 	rm -f $(BINARY)

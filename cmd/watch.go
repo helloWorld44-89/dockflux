@@ -2,11 +2,13 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 	"time"
 
-	"github.com/helloWorld44-89/dockflux/internal/config"
-	"github.com/helloWorld44-89/dockflux/internal/reconcile"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/config"
+	"github.com/darkmode_dev/dockflux/internal/reconcile"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 )
 
@@ -38,18 +40,31 @@ func runWatch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
+	// Load secrets once at startup so the daemon doesn't prompt on every tick.
+	var secretsStore *secrets.Store
+	if _, statErr := os.Stat(cfg.SecretsFile); statErr == nil {
+		password, err := secrets.PromptPassword("Secrets master password")
+		if err != nil {
+			return err
+		}
+		secretsStore, err = secrets.Load(cfg.SecretsFile, password)
+		if err != nil {
+			return err
+		}
+	}
+
 	ui.Info("dockflux watch started — interval: %s, dry-run: %v", interval, dryRun)
 
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	// Run immediately on start, then on each tick.
-	tick(cmd, cfg, dryRun)
+	tick(cmd, cfg, dryRun, secretsStore)
 
 	for {
 		select {
 		case <-ticker.C:
-			tick(cmd, cfg, dryRun)
+			tick(cmd, cfg, dryRun, secretsStore)
 		case <-cmd.Context().Done():
 			ui.Info("watch stopped")
 			return nil
@@ -57,7 +72,7 @@ func runWatch(cmd *cobra.Command, args []string) error {
 	}
 }
 
-func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool) {
+func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool, secretsStore *secrets.Store) {
 	hostFlag, _ := cmd.Flags().GetString("host")
 	groupFlag, _ := cmd.Flags().GetString("group")
 	allFlag, _ := cmd.Flags().GetBool("all")
@@ -66,7 +81,7 @@ func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool) {
 	ts := time.Now().Format("2006-01-02 15:04:05")
 	fmt.Printf("\n[%s] reconciling...\n", ts)
 
-	result, err := reconcile.Run(cmd.Context(), cfg, hostFlag, groupFlag, allFlag, localFlag, dryRun)
+	result, err := reconcile.Run(cmd.Context(), cfg, hostFlag, groupFlag, allFlag, localFlag, dryRun, secretsStore)
 	if err != nil {
 		ui.Error("reconcile error: %v", err)
 		return

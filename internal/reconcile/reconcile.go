@@ -6,13 +6,14 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/helloWorld44-89/dockflux/internal/config"
-	"github.com/helloWorld44-89/dockflux/internal/deploy"
-	"github.com/helloWorld44-89/dockflux/internal/gitops"
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
-	"github.com/helloWorld44-89/dockflux/internal/lockfile"
-	"github.com/helloWorld44-89/dockflux/internal/runner"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/config"
+	"github.com/darkmode_dev/dockflux/internal/deploy"
+	"github.com/darkmode_dev/dockflux/internal/gitops"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/lockfile"
+	"github.com/darkmode_dev/dockflux/internal/runner"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 )
 
 // Result holds the outcome of a single reconcile pass.
@@ -26,8 +27,9 @@ type Result struct {
 // Run performs one reconcile pass: sync repo, reload inventory, find stale/undeployed
 // stacks, and deploy them to their assigned hosts. If dryRun is true, nothing is deployed.
 // Targeting flags mirror the CLI flags; when all are zero-values --all is assumed.
-func Run(ctx context.Context, cfg *config.Config, hostFlag, groupFlag string, allFlag, localFlag bool, dryRun bool) (*Result, error) {
-	// Sync repo — build auth from config key path (empty = unauthenticated / ssh-agent)
+// secretsStore, if non-nil, is used to inject per-stack secrets at deploy time.
+func Run(ctx context.Context, cfg *config.Config, hostFlag, groupFlag string, allFlag, localFlag bool, dryRun bool, secretsStore *secrets.Store) (*Result, error) {
+	// Build git auth: SSH key if configured, nil otherwise (public repo or ssh-agent).
 	auth, err := gitops.SSHAuth(cfg.Repo.Key)
 	if err != nil {
 		return nil, err
@@ -95,7 +97,11 @@ func Run(ctx context.Context, cfg *config.Config, hostFlag, groupFlag string, al
 			Commit:    head,
 		}
 
-		if err := deploy.Run(ctx, stackHosts, opts, lf, cfg.StateFile, nil); err != nil {
+		var stackSecrets map[string]string
+		if secretsStore != nil {
+			stackSecrets = secretsStore.GetStackSecrets(stackName)
+		}
+		if err := deploy.Run(ctx, stackHosts, opts, lf, cfg.StateFile, stackSecrets); err != nil {
 			ui.Error("Failed to deploy %s: %v", stackName, err)
 			result.Failed = append(result.Failed, stackName)
 			continue

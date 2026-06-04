@@ -1,8 +1,8 @@
 package secretscmd
 
 import (
-	"github.com/helloWorld44-89/dockflux/internal/secrets"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 	"github.com/spf13/cobra"
 )
 

@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
 	"github.com/spf13/cobra"
 )
 

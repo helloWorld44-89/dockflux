@@ -14,7 +14,7 @@ builds:
       - amd64
       - arm64
     ldflags:
-      - -X github.com/helloWorld44-89/dockflux/cmd.Version={{.Version}}
+      - -X github.com/darkmode_dev/dockflux/cmd.Version={{.Version}}
 
 archives:
   - format: binary
@@ -26,7 +26,7 @@ checksum:
 
 release:
   github:
-    owner: helloWorld44-89
+    owner: darkmode_dev
     name: dockflux
 
 changelog:

@@ -8,12 +8,12 @@ import (
 
 	"github.com/charmbracelet/huh"
 	gitopstransport "github.com/go-git/go-git/v5/plumbing/transport"
-	"github.com/helloWorld44-89/dockflux/internal/gitops"
-	"github.com/helloWorld44-89/dockflux/internal/importer"
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
-	"github.com/helloWorld44-89/dockflux/internal/runner"
-	"github.com/helloWorld44-89/dockflux/internal/secrets"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/gitops"
+	"github.com/darkmode_dev/dockflux/internal/importer"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/runner"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )

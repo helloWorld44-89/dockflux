@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/helloWorld44-89/dockflux/internal/config"
-	"github.com/helloWorld44-89/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/config"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

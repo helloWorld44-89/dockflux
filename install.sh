@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-REPO="helloWorld44-89/dockflux"
+REPO="darkmode_dev/dockflux"
 INSTALL_DIR="/usr/local/bin"
 BIN="dockflux"
 

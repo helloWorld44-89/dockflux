@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/charmbracelet/huh"
-	"github.com/helloWorld44-89/dockflux/internal/gitops"
-	"github.com/helloWorld44-89/dockflux/internal/importer"
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
-	"github.com/helloWorld44-89/dockflux/internal/lockfile"
-	"github.com/helloWorld44-89/dockflux/internal/secrets"
-	"github.com/helloWorld44-89/dockflux/internal/ui"
+	"github.com/darkmode_dev/dockflux/internal/gitops"
+	"github.com/darkmode_dev/dockflux/internal/importer"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/lockfile"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/ui"
 	"github.com/pterm/pterm"
 	"github.com/spf13/cobra"
 )

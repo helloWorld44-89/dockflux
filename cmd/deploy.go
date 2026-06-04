@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/helloWorld44-89/dockflux/internal/deploy"
-	"github.com/helloWorld44-89/dockflux/internal/gitops"
-	"github.com/helloWorld44-89/dockflux/internal/inventory"
-	"github.com/helloWorld44-89/dockflux/internal/lockfile"
-	"github.com/helloWorld44-89/dockflux/internal/runner"
+	"github.com/darkmode_dev/dockflux/internal/deploy"
+	"github.com/darkmode_dev/dockflux/internal/gitops"
+	"github.com/darkmode_dev/dockflux/internal/inventory"
+	"github.com/darkmode_dev/dockflux/internal/lockfile"
+	"github.com/darkmode_dev/dockflux/internal/runner"
 	"github.com/spf13/cobra"
 )
 

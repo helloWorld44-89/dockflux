@@ -12,12 +12,20 @@ import (
 // GenerateEnv reads .env.example from stackPath and fills in values from
 // stackSecrets. Lines without a matching secret are left as-is (placeholder
 // stays in the output so the container still gets the variable, just with the
-// example value). Returns nil if no .env.example file exists.
+// example value). If no .env.example exists but stackSecrets is non-empty,
+// all secrets are written directly to the output.
 func GenerateEnv(stackPath string, stackSecrets map[string]string) ([]byte, error) {
 	examplePath := filepath.Join(stackPath, ".env.example")
 	f, err := os.Open(examplePath)
 	if os.IsNotExist(err) {
-		return nil, nil
+		if len(stackSecrets) == 0 {
+			return nil, nil
+		}
+		var buf bytes.Buffer
+		for k, v := range stackSecrets {
+			buf.WriteString(k + "=" + v + "\n")
+		}
+		return buf.Bytes(), nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("opening .env.example: %w", err)

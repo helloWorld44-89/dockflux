@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/helloWorld44-89/dockflux/cmd"
+	"github.com/darkmode_dev/dockflux/cmd"
 )
 
 func main() {

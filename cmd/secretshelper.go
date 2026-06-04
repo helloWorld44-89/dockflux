@@ -3,7 +3,7 @@ package cmd
 import (
 	"os"
 
-	"github.com/helloWorld44-89/dockflux/internal/secrets"
+	"github.com/darkmode_dev/dockflux/internal/secrets"
 )
 
 // loadStackSecrets loads secrets for stackName from the encrypted store.
