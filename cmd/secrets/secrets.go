@@ -18,4 +18,5 @@ func init() {
 	SecretsCmd.AddCommand(listCmd)
 	SecretsCmd.AddCommand(deleteCmd)
 	SecretsCmd.AddCommand(envCmd)
+	SecretsCmd.AddCommand(editCmd)
 }

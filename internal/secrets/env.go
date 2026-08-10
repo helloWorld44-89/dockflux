@@ -67,6 +67,39 @@ func GenerateEnv(stackPath string, stackSecrets map[string]string) ([]byte, erro
 	return buf.Bytes(), nil
 }
 
+// ExampleKeys returns the variable names declared in stackPath/.env.example,
+// in file order. Returns nil if no .env.example exists.
+func ExampleKeys(stackPath string) ([]string, error) {
+	examplePath := filepath.Join(stackPath, ".env.example")
+	f, err := os.Open(examplePath)
+	if os.IsNotExist(err) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, fmt.Errorf("opening .env.example: %w", err)
+	}
+	defer f.Close()
+
+	var keys []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		line := scanner.Text()
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" || strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		keys = append(keys, strings.TrimSpace(parts[0]))
+	}
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("reading .env.example: %w", err)
+	}
+	return keys, nil
+}
+
 // InjectEnv writes a generated .env file into stackPath and returns a cleanup
 // function that removes it. If no .env.example exists, both return values are
 // nil. The caller must call cleanup() after the stack files have been copied.

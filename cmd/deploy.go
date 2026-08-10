@@ -42,21 +42,9 @@ func runComposeAction(cmd *cobra.Command, args []string, action runner.ComposeAc
 		return err
 	}
 
-	hosts, err := resolveTargets(cmd, inv)
+	hosts, err := resolveTargets(cmd, inv, stackName)
 	if err != nil {
 		return err
-	}
-
-	// When targeting --all, respect the stacks: assignment in inventory.
-	// Explicit --host / --group / --local flags mean the user is intentionally
-	// overriding, so skip the filter.
-	allFlag, _ := cmd.Flags().GetBool("all")
-	if allFlag {
-		hosts = inventory.FilterForStack(hosts, stackName)
-	}
-
-	if len(hosts) == 0 {
-		return fmt.Errorf("no hosts to deploy %q to — add it to the stacks: list in inventory.yml or target a host explicitly with --host", stackName)
 	}
 
 	lf, err := lockfile.Load(cfg.StateFile)

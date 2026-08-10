@@ -40,14 +40,15 @@ func runWatch(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	// Load secrets once at startup so the daemon doesn't prompt on every tick.
-	var secretsStore *secrets.Store
+	// Prompt for the master password once (or read it from
+	// DOCKFLUX_SECRETS_PASSWORD) so the daemon doesn't prompt on every tick,
+	// but reload the store from disk each tick so secrets added or changed
+	// mid-run (e.g. via `secrets set`/`secrets edit`) take effect without a
+	// restart.
+	var password string
 	if _, statErr := os.Stat(cfg.SecretsFile); statErr == nil {
-		password, err := secrets.PromptPassword("Secrets master password")
-		if err != nil {
-			return err
-		}
-		secretsStore, err = secrets.Load(cfg.SecretsFile, password)
+		var err error
+		password, err = secrets.PromptPassword("Secrets master password")
 		if err != nil {
 			return err
 		}
@@ -59,12 +60,12 @@ func runWatch(cmd *cobra.Command, args []string) error {
 	defer ticker.Stop()
 
 	// Run immediately on start, then on each tick.
-	tick(cmd, cfg, dryRun, secretsStore)
+	tick(cmd, cfg, dryRun, password)
 
 	for {
 		select {
 		case <-ticker.C:
-			tick(cmd, cfg, dryRun, secretsStore)
+			tick(cmd, cfg, dryRun, password)
 		case <-cmd.Context().Done():
 			ui.Info("watch stopped")
 			return nil
@@ -72,7 +73,7 @@ func runWatch(cmd *cobra.Command, args []string) error {
 	}
 }
 
-func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool, secretsStore *secrets.Store) {
+func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool, password string) {
 	hostFlag, _ := cmd.Flags().GetString("host")
 	groupFlag, _ := cmd.Flags().GetString("group")
 	allFlag, _ := cmd.Flags().GetBool("all")
@@ -80,6 +81,16 @@ func tick(cmd *cobra.Command, cfg *config.Config, dryRun bool, secretsStore *sec
 
 	ts := time.Now().Format("2006-01-02 15:04:05")
 	fmt.Printf("\n[%s] reconciling...\n", ts)
+
+	var secretsStore *secrets.Store
+	if password != "" {
+		store, err := secrets.Load(cfg.SecretsFile, password)
+		if err != nil {
+			ui.Error("reloading secrets: %v", err)
+			return
+		}
+		secretsStore = store
+	}
 
 	result, err := reconcile.Run(cmd.Context(), cfg, hostFlag, groupFlag, allFlag, localFlag, dryRun, secretsStore)
 	if err != nil {

@@ -38,7 +38,7 @@ func runRollback(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	hosts, err := resolveTargets(cmd, inv)
+	hosts, err := resolveTargets(cmd, inv, stackName)
 	if err != nil {
 		return err
 	}

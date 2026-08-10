@@ -25,8 +25,9 @@ func Run(
 	lfPath string,
 	stackSecrets map[string]string,
 ) error {
-	// Inject .env from secrets + .env.example before any host copies
-	if opts.Action != runner.ActionDown && len(stackSecrets) > 0 {
+	// Inject .env from secrets + .env.example before any host copies.
+	// InjectEnv is a no-op if the stack has no .env.example and no secrets.
+	if opts.Action != runner.ActionDown {
 		cleanup, err := secrets.InjectEnv(opts.StackPath, stackSecrets)
 		if err != nil {
 			return fmt.Errorf("injecting .env: %w", err)

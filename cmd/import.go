@@ -209,7 +209,7 @@ func resolveOrPromptHosts(cmd *cobra.Command, inv *inventory.Inventory) ([]*inve
 
 	// Fast path: standard resolution (works for --all, --group, --local, or
 	// --host when the entry already exists).
-	hosts, err := resolveTargets(cmd, inv)
+	hosts, err := resolveTargets(cmd, inv, "")
 	if err == nil {
 		return hosts, nil
 	}
